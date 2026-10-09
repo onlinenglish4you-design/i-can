@@ -1,0 +1,423 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#050507">
+<title>n n n I can</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@700;800&family=Space+Grotesk:wght@500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #050507;
+    --bg-2: #0d0c14;
+    --blue: #2f5bff;
+    --violet: #9b4dff;
+    --green: #39ff9a;
+    --text: #f4f3fa;
+    --muted: #9a98ad;
+    box-sizing: border-box;
+  }
+  *, *::before, *::after { box-sizing: inherit; margin: 0; padding: 0; }
+  html, body { height: 100%; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: "Space Grotesk", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    -webkit-tap-highlight-color: transparent;
+    overflow-x: hidden;
+  }
+
+  .stage {
+    position: relative;
+    min-height: 100%;
+    min-height: 100dvh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: calc(env(safe-area-inset-top, 0px) + 24px) 20px calc(env(safe-area-inset-bottom, 0px) + 24px);
+    background:
+      radial-gradient(120% 55% at 50% 108%, rgba(155,77,255,.34), transparent 62%),
+      radial-gradient(70% 40% at 0% 0%, rgba(47,91,255,.20), transparent 70%),
+      radial-gradient(60% 35% at 100% 4%, rgba(57,255,154,.07), transparent 70%),
+      linear-gradient(180deg, var(--bg) 0%, var(--bg-2) 100%);
+    overflow: hidden;
+  }
+
+  .eq {
+    position: absolute;
+    left: 0; right: 0; bottom: 0;
+    height: 34%;
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+    gap: 5px;
+    padding: 0 14px;
+    pointer-events: none;
+    opacity: .55;
+    -webkit-mask-image: linear-gradient(to top, #000 0%, transparent 100%);
+            mask-image: linear-gradient(to top, #000 0%, transparent 100%);
+  }
+  .eq i {
+    flex: 1 1 0;
+    max-width: 14px;
+    height: 100%;
+    border-radius: 3px 3px 0 0;
+    background: linear-gradient(to top, var(--violet), var(--blue));
+    transform-origin: bottom;
+    transform: scaleY(.07);
+    transition: transform .35s ease;
+  }
+  .stage.playing .eq i {
+    animation: bounce var(--d, .9s) ease-in-out infinite alternate;
+    animation-delay: var(--delay, 0s);
+  }
+  .stage.playing .eq { opacity: .9; }
+  @keyframes bounce {
+    from { transform: scaleY(.08); }
+    to   { transform: scaleY(var(--h, .7)); }
+  }
+
+  main {
+    position: relative;
+    z-index: 1;
+    width: 100%;
+    max-width: 560px;
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .phrase {
+    font-family: "Unbounded", "Arial Black", Impact, system-ui, sans-serif;
+    font-weight: 800;
+    font-size: clamp(2.5rem, 13vw, 6rem);
+    line-height: 1.04;
+    letter-spacing: -0.02em;
+    color: var(--text);
+    text-shadow:
+      0 0 18px rgba(155,77,255,.55),
+      0 0 46px rgba(47,91,255,.35);
+  }
+  .phrase > span { display: block; }
+
+  /* tres "n" separadas: cada una se enciende cuando suena su sonido */
+  .ns b {
+    font-weight: inherit;
+    display: inline-block;
+    margin: 0 .24em;
+    transition: color .12s ease, text-shadow .12s ease, transform .12s ease;
+  }
+  .ns b.lit {
+    color: var(--green);
+    text-shadow: 0 0 16px rgba(57,255,154,.85), 0 0 42px rgba(57,255,154,.5);
+    transform: translateY(-3%) scale(1.08);
+  }
+
+  .es {
+    margin-top: clamp(14px, 3.2vh, 26px);
+    font-size: clamp(1.05rem, 4.6vw, 1.5rem);
+    font-weight: 500;
+    color: var(--muted);
+    letter-spacing: .01em;
+  }
+
+  .buttons {
+    margin-top: clamp(30px, 6.5vh, 52px);
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    width: min(100%, 340px);
+  }
+  button {
+    font: inherit;
+    font-weight: 600;
+    font-size: 1.05rem;
+    letter-spacing: .08em;
+    min-height: 58px;
+    border-radius: 999px;
+    cursor: pointer;
+    color: var(--text);
+    transition: transform .12s ease, box-shadow .2s ease, background .2s ease;
+    touch-action: manipulation;
+  }
+  button:active { transform: scale(.97); }
+  button:focus-visible { outline: 3px solid var(--green); outline-offset: 3px; }
+
+  .primary {
+    border: 0;
+    background: linear-gradient(100deg, var(--blue), var(--violet));
+    box-shadow: 0 0 0 1px rgba(255,255,255,.08) inset, 0 8px 32px rgba(120,70,255,.45);
+  }
+  .secondary {
+    background: rgba(255,255,255,.03);
+    border: 1.5px solid var(--green);
+    color: var(--green);
+    box-shadow: 0 0 22px rgba(57,255,154,.14);
+  }
+  .stage.playing .primary,
+  .stage.playing .secondary { box-shadow: 0 0 34px rgba(155,77,255,.6); }
+
+  .status {
+    min-height: 1.3em;
+    margin-top: 18px;
+    font-size: .85rem;
+    color: var(--muted);
+  }
+  .status.error { color: #ff7a9a; }
+
+  .note {
+    position: absolute;
+    z-index: 1;
+    left: 0; right: 0;
+    bottom: calc(env(safe-area-inset-bottom, 0px) + 10px);
+    text-align: center;
+    font-size: .72rem;
+    color: rgba(154,152,173,.6);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .stage.playing .eq i { animation: none; transform: scaleY(.5); }
+    .ns b.lit { transform: none; }
+  }
+  @media (max-height: 560px) {
+    .buttons { flex-direction: row; }
+    .stage { justify-content: flex-start; }
+  }
+</style>
+</head>
+<body>
+  <div class="stage" id="stage">
+    <div class="eq" id="eq" aria-hidden="true"></div>
+
+    <main>
+      <h1 class="phrase">
+        <span class="ns" id="ns" aria-label="n, n, n"><b>n</b><b>n</b><b>n</b></span>
+        <span lang="en-GB">I can</span>
+      </h1>
+      <p class="es" lang="es">Yo puedo</p>
+
+      <div class="buttons">
+        <button type="button" class="primary" id="btn-play">🔊 ESCUCHAR</button>
+        <button type="button" class="secondary" id="btn-again">🔁 OTRA VEZ</button>
+      </div>
+
+      <p class="status" id="status" role="status" aria-live="polite"></p>
+    </main>
+
+    <p class="note">El audio puede necesitar conexión a Internet</p>
+  </div>
+
+<script>
+(function () {
+  "use strict";
+
+  var SPOKEN = "I can";           // la parte que dice la voz británica
+  var stage  = document.getElementById("stage");
+  var statusEl = document.getElementById("status");
+  var nEls   = Array.prototype.slice.call(document.querySelectorAll("#ns b"));
+  var synth  = window.speechSynthesis || null;
+  var fallbackAudio = null;
+  var voices = [];
+  var runToken = 0;
+  var timers = [];
+  var ctx = null;
+  var humStops = [];
+
+  /* ---------- ecualizador decorativo ---------- */
+  var eq = document.getElementById("eq");
+  var BARS = 28;
+  for (var i = 0; i < BARS; i++) {
+    var b = document.createElement("i");
+    var center = 1 - Math.abs(i - (BARS - 1) / 2) / (BARS / 2);
+    b.style.setProperty("--h", (0.25 + Math.random() * 0.45 + center * 0.3).toFixed(2));
+    b.style.setProperty("--d", (0.55 + Math.random() * 0.6).toFixed(2) + "s");
+    b.style.setProperty("--delay", (-Math.random()).toFixed(2) + "s");
+    eq.appendChild(b);
+  }
+
+  function setPlaying(on) { stage.classList.toggle("playing", !!on); }
+  function lightN(index, on) { if (nEls[index]) nEls[index].classList.toggle("lit", !!on); }
+  function clearN() { nEls.forEach(function (el) { el.classList.remove("lit"); }); }
+  function setStatus(msg, isError) {
+    statusEl.textContent = msg || "";
+    statusEl.classList.toggle("error", !!isError);
+  }
+
+  /* ---------- voces ---------- */
+  function loadVoices() { if (synth) voices = synth.getVoices() || []; }
+  if (synth) {
+    loadVoices();
+    if (typeof synth.addEventListener === "function") synth.addEventListener("voiceschanged", loadVoices);
+    else synth.onvoiceschanged = loadVoices;
+  }
+  function isGB(v) { return /^en[-_]GB$/i.test(v.lang || ""); }
+  function pickBritishVoice() {
+    var gb = voices.filter(isGB);
+    if (!gb.length) return null;
+    var score = function (v) {
+      var n = (v.name || "").toLowerCase(), s = 0;
+      if (/natural|neural|online|premium|enhanced/.test(n)) s += 4;
+      if (/google/.test(n)) s += 2;
+      if (/female|libby|sonia|serena|kate|hazel|martha|susan/.test(n)) s += 1;
+      if (v.localService === false) s += 1;
+      return s;
+    };
+    gb.sort(function (a, b) { return score(b) - score(a); });
+    return gb[0];
+  }
+
+  /* ---------- cada "n": zumbido nasal corto (Web Audio, sin archivos) ----------
+     Diente de sierra ~150 Hz con vibrato leve, pasado por filtros que imitan
+     una consonante nasal: resonancia baja y un hueco cerca de 900 Hz.        */
+  function getCtx() {
+    if (!ctx) {
+      var AC = window.AudioContext || window.webkitAudioContext;
+      if (!AC) return null;
+      ctx = new AC();
+    }
+    if (ctx.state === "suspended" && ctx.resume) ctx.resume();
+    return ctx;
+  }
+
+  function hum(c, t, duration) {
+    var osc = c.createOscillator();
+    osc.type = "sawtooth";
+    osc.frequency.setValueAtTime(156, t);
+    osc.frequency.linearRampToValueAtTime(148, t + duration);
+
+    var lfo = c.createOscillator();
+    lfo.frequency.value = 5.2;
+    var lfoGain = c.createGain();
+    lfoGain.gain.value = 1.8;
+    lfo.connect(lfoGain);
+    lfoGain.connect(osc.frequency);
+
+    var lp = c.createBiquadFilter();
+    lp.type = "lowpass"; lp.frequency.value = 1500; lp.Q.value = 0.7;
+
+    var nasal = c.createBiquadFilter();
+    nasal.type = "peaking"; nasal.frequency.value = 270; nasal.Q.value = 3; nasal.gain.value = 9;
+
+    var notch = c.createBiquadFilter();
+    notch.type = "notch"; notch.frequency.value = 900; notch.Q.value = 1.4;
+
+    var g = c.createGain();
+    g.gain.setValueAtTime(0.0001, t);
+    g.gain.linearRampToValueAtTime(0.42, t + 0.07);
+    g.gain.setValueAtTime(0.42, t + duration - 0.1);
+    g.gain.linearRampToValueAtTime(0.0001, t + duration);
+
+    osc.connect(lp); lp.connect(nasal); nasal.connect(notch); notch.connect(g); g.connect(c.destination);
+    osc.start(t); lfo.start(t);
+    osc.stop(t + duration + 0.05); lfo.stop(t + duration + 0.05);
+
+    humStops.push(function () {
+      try { g.gain.cancelScheduledValues(c.currentTime); g.gain.setValueAtTime(0.0001, c.currentTime); } catch (e) {}
+      try { osc.stop(); lfo.stop(); } catch (e) {}
+    });
+  }
+
+  /* ---------- "I can": voz del dispositivo en inglés británico ---------- */
+  function speakWithSynth(rate, token) {
+    return new Promise(function (resolve) {
+      if (!synth || typeof SpeechSynthesisUtterance === "undefined") { resolve(false); return; }
+      var settled = false;
+      try { synth.cancel(); } catch (e) {}
+      setTimeout(function () {
+        if (token !== runToken) { resolve(true); return; }
+        var u = new SpeechSynthesisUtterance(SPOKEN);
+        u.lang = "en-GB"; u.rate = rate; u.pitch = 1; u.volume = 1;
+        var v = pickBritishVoice();
+        if (v) u.voice = v;
+        u.onstart = function () { if (token === runToken) { setPlaying(true); setStatus(""); } if (!settled) { settled = true; resolve(true); } };
+        u.onend   = function () { if (token === runToken) setPlaying(false); };
+        u.onerror = function () { if (token === runToken) setPlaying(false); if (!settled) { settled = true; resolve(false); } };
+        try { synth.speak(u); } catch (e) { resolve(false); return; }
+        setTimeout(function () {
+          if (!settled) { settled = true; try { synth.cancel(); } catch (e) {} resolve(false); }
+        }, 2500);
+      }, 60);
+    });
+  }
+
+  /* ---------- alternativa por Internet (en-GB) ---------- */
+  function speakWithAudio(rate, token) {
+    return new Promise(function (resolve) {
+      try {
+        if (fallbackAudio) fallbackAudio.pause();
+        var url = "https://translate.google.com/translate_tts?ie=UTF-8&client=tw-ob&tl=en-GB&q=" + encodeURIComponent(SPOKEN);
+        fallbackAudio = new Audio(url);
+        fallbackAudio.playbackRate = rate;
+        if ("preservesPitch" in fallbackAudio) fallbackAudio.preservesPitch = true;
+        if ("webkitPreservesPitch" in fallbackAudio) fallbackAudio.webkitPreservesPitch = true;
+        fallbackAudio.onplaying = function () { if (token === runToken) { setPlaying(true); setStatus(""); } };
+        fallbackAudio.onended = function () { if (token === runToken) setPlaying(false); };
+        fallbackAudio.onerror = function () { if (token === runToken) setPlaying(false); resolve(false); };
+        var p = fallbackAudio.play();
+        if (p && typeof p.then === "function") p.then(function () { resolve(true); }, function () { resolve(false); });
+        else resolve(true);
+      } catch (e) { resolve(false); }
+    });
+  }
+
+  /* ---------- parar todo ---------- */
+  function stopAll() {
+    runToken++;
+    timers.forEach(clearTimeout); timers = [];
+    humStops.forEach(function (fn) { fn(); }); humStops = [];
+    try { if (synth) synth.cancel(); } catch (e) {}
+    if (fallbackAudio) { try { fallbackAudio.pause(); } catch (e) {} }
+    clearN(); setPlaying(false);
+  }
+
+  /* ---------- secuencia: n . n . n .  →  I can ---------- */
+  function playPhrase(slow) {
+    stopAll();
+    var token = runToken;
+    var hd = slow ? 1.0 : 0.65;     // duración de cada "n" (segundos)
+    var gap = slow ? 0.45 : 0.3;    // pausa entre "n"
+    var lead = 0.05;
+    var synthRate = slow ? 0.6 : 0.95;
+    var audioRate = slow ? 0.7 : 1.0;
+
+    setStatus("");
+    var c = getCtx();
+    var wait = 0;
+    if (c) {
+      setPlaying(true);
+      var t0 = c.currentTime;
+      for (var k = 0; k < 3; k++) {
+        (function (idx) {
+          var start = lead + idx * (hd + gap);
+          hum(c, t0 + start, hd);
+          timers.push(setTimeout(function () { if (token === runToken) lightN(idx, true); }, start * 1000));
+          timers.push(setTimeout(function () { if (token === runToken) lightN(idx, false); }, (start + hd) * 1000));
+        })(k);
+      }
+      wait = Math.round((lead + 3 * hd + 2 * gap + gap) * 1000);
+    }
+
+    timers.push(setTimeout(function () {
+      if (token !== runToken) return;
+      clearN();
+      speakWithSynth(synthRate, token)
+        .then(function (ok) { return ok ? true : speakWithAudio(audioRate, token); })
+        .then(function (ok) {
+          if (token !== runToken) return;
+          if (!ok) { setPlaying(false); setStatus("No se pudo reproducir. Revisá el volumen y la conexión.", true); }
+        });
+    }, wait));
+  }
+
+  document.getElementById("btn-play").addEventListener("click", function () { playPhrase(false); });
+  document.getElementById("btn-again").addEventListener("click", function () { playPhrase(true); });
+
+  window.addEventListener("pagehide", stopAll);
+})();
+</script>
+</body>
+</html>
